@@ -1,0 +1,21 @@
+player_name,total_score,relative_to_par,r1,r2,r3,r4,made_cut,projected_finish
+"DeChambeau, Bryson",270,-10,-3,-6,-6,5,True,Top 5
+"Schauffele, Xander",271,-9,-2,-5,-1,-1,True,Top 5
+"Niemann, Joaquin",275,-5,-3,-6,4,0,True,Top 10
+"Thomas, Justin",275,-5,0,-5,0,0,True,Top 10
+"Conners, Corey",276,-4,-5,2,-4,3,True,Top 10
+"Bradley, Keegan",276,-4,-1,-3,-2,2,True,Top 10
+"Aberg, Ludvig",276,-4,-6,-3,3,2,True,Top 10
+"Lowry, Shane",278,-2,0,-2,-1,1,True,Top 25
+"Scheffler, Scottie",279,-1,-2,1,-3,3,True,Top 25
+"Morikawa, Collin",280,0,5,-2,-1,-2,True,Top 25
+"Burns, Sam",280,0,-1,-2,3,0,True,Top 25
+"Cantlay, Patrick",282,2,-2,7,1,-4,True,Top 50
+"Hatton, Tyrrell",283,3,1,2,-1,1,True,Top 50
+"Henley, Russell",284,4,0,-5,1,8,True,Top 50
+"McIlroy, Rory",285,5,-1,3,0,3,True,Made Cut
+"Fleetwood, Tommy",285,5,2,2,-3,4,True,Made Cut
+"Griffin, Ben",285,5,3,3,-3,2,True,Made Cut
+"Rahm, Jon",287,7,4,1,-2,4,True,Made Cut
+"Straka, Sepp",287,7,3,1,-1,4,True,Made Cut
+"Matsuyama, Hideki",296,16,3,9,2,2,False,Missed Cut

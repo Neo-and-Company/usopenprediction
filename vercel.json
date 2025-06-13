@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "golf-prediction-app",
   "builds": [
     {
       "src": "vercel_app.py",
@@ -18,10 +17,5 @@
   ],
   "env": {
     "FLASK_ENV": "production"
-  },
-  "functions": {
-    "vercel_app.py": {
-      "maxDuration": 30
-    }
   }
 }

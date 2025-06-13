@@ -18,12 +18,14 @@ sys.path.append('src')
 
 from data_pipeline.database_manager import GolfPredictionDB
 from data_pipeline.query_examples import GolfPredictionQueries
+from evaluation.model_evaluation import GolfModelEvaluator
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'golf-prediction-secret-key-2025'
 
-# Initialize database queries
+# Initialize database queries and evaluator
 queries = GolfPredictionQueries()
+evaluator = GolfModelEvaluator()
 
 def convert_numpy_types(obj):
     """Convert numpy types to Python native types for JSON serialization."""
@@ -66,7 +68,7 @@ def index():
 def api_predictions():
     """API endpoint for all predictions."""
     try:
-        limit = request.args.get('limit', 15, type=int)
+        limit = request.args.get('limit', 114, type=int)
         predictions = queries.get_top_predictions(limit)
         
         return jsonify({
@@ -95,7 +97,7 @@ def api_top_predictions(limit):
             'status': 'success',
             'limit': limit,
             'count': len(predictions),
-            'predictions': predictions.to_dict('records')
+            'predictions': convert_numpy_types(predictions.to_dict('records'))
         })
     except Exception as e:
         return jsonify({
@@ -114,7 +116,7 @@ def api_value_picks():
             'status': 'success',
             'min_rank_improvement': min_improvement,
             'count': len(value_picks),
-            'value_picks': value_picks.to_dict('records')
+            'value_picks': convert_numpy_types(value_picks.to_dict('records'))
         })
     except Exception as e:
         return jsonify({
@@ -131,7 +133,7 @@ def api_elite_analysis():
         return jsonify({
             'status': 'success',
             'count': len(elite_analysis),
-            'elite_players': elite_analysis.to_dict('records')
+            'elite_players': convert_numpy_types(elite_analysis.to_dict('records'))
         })
     except Exception as e:
         return jsonify({
@@ -156,7 +158,7 @@ def api_course_fit(fit_category):
             'status': 'success',
             'fit_category': fit_category,
             'count': len(players),
-            'players': players.to_dict('records')
+            'players': convert_numpy_types(players.to_dict('records'))
         })
     except Exception as e:
         return jsonify({
@@ -179,9 +181,9 @@ def api_stats():
         
         return jsonify({
             'status': 'success',
-            'tournament_summary': field_summary,
-            'course_fit_analysis': fit_analysis.to_dict('records'),
-            'country_representation': countries.head(10).to_dict('records'),
+            'tournament_summary': convert_numpy_types(field_summary),
+            'course_fit_analysis': convert_numpy_types(fit_analysis.to_dict('records')),
+            'country_representation': convert_numpy_types(countries.head(10).to_dict('records')),
             'timestamp': datetime.now().isoformat()
         })
     except Exception as e:
@@ -194,8 +196,8 @@ def api_stats():
 def predictions_page():
     """Predictions page with detailed view."""
     try:
-        predictions = queries.get_top_predictions(25)
-        return render_template('predictions.html', 
+        predictions = queries.get_top_predictions(50)  # Show more predictions
+        return render_template('predictions.html',
                              predictions=predictions.to_dict('records'))
     except Exception as e:
         return render_template('error.html', error=str(e))
@@ -218,7 +220,7 @@ def analytics_page():
         elite_analysis = queries.get_elite_players_analysis()
         fit_analysis = queries.get_course_fit_vs_ranking_analysis()
         countries = queries.get_country_representation()
-        
+
         return render_template('analytics.html',
                              elite_players=elite_analysis.to_dict('records'),
                              fit_analysis=fit_analysis.to_dict('records'),
@@ -226,13 +228,83 @@ def analytics_page():
     except Exception as e:
         return render_template('error.html', error=str(e))
 
+@app.route('/evaluation')
+def evaluation_page():
+    """Model evaluation page with ROC and F1 scores."""
+    try:
+        # Get evaluation metrics
+        evaluation_results = evaluator.evaluate_prediction_model()
+        feature_analysis = evaluator.get_feature_importance_analysis()
+        calibration_analysis = evaluator.get_model_calibration_analysis()
+
+        return render_template('evaluation.html',
+                             evaluation_results=evaluation_results,
+                             feature_analysis=feature_analysis,
+                             calibration_analysis=calibration_analysis)
+    except Exception as e:
+        return render_template('error.html', error=str(e))
+
+@app.route('/api/model-evaluation')
+def api_model_evaluation():
+    """API endpoint for model evaluation metrics."""
+    try:
+        evaluation_results = evaluator.evaluate_prediction_model()
+
+        return jsonify({
+            'status': 'success',
+            'evaluation_results': convert_numpy_types(evaluation_results),
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+@app.route('/api/feature-importance')
+def api_feature_importance():
+    """API endpoint for feature importance analysis."""
+    try:
+        feature_analysis = evaluator.get_feature_importance_analysis()
+
+        return jsonify({
+            'status': 'success',
+            'feature_analysis': convert_numpy_types(feature_analysis),
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+@app.route('/api/model-calibration')
+def api_model_calibration():
+    """API endpoint for model calibration analysis."""
+    try:
+        calibration_analysis = evaluator.get_model_calibration_analysis()
+
+        return jsonify({
+            'status': 'success',
+            'calibration_analysis': convert_numpy_types(calibration_analysis),
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
 @app.route('/api/health')
 def health_check():
     """Health check endpoint."""
     try:
         # Test database connection
         summary = queries.get_tournament_field_summary()
-        
+
         return jsonify({
             'status': 'healthy',
             'database': 'connected',

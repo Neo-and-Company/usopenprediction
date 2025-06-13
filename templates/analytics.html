@@ -19,8 +19,8 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-sm">
-                        <thead class="table-dark">
+                    <table class="table table-dark table-sm">
+                        <thead>
                             <tr>
                                 <th>World Rank</th>
                                 <th>Player</th>
@@ -81,7 +81,7 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-striped">
+                    <table class="table table-dark table-striped">
                         <thead>
                             <tr>
                                 <th>Fit Category</th>
@@ -145,7 +145,7 @@
                 <div class="row">
                     <div class="col-md-8">
                         <div class="table-responsive">
-                            <table class="table table-sm">
+                            <table class="table table-dark table-sm">
                                 <thead>
                                     <tr>
                                         <th>Country</th>
@@ -233,21 +233,25 @@
             <div class="card-body">
                 <h6>Available Analytics APIs:</h6>
                 <div class="list-group list-group-flush">
-                    <a href="/api/elite-analysis" class="list-group-item list-group-item-action" target="_blank">
+                    <a href="/api/elite-analysis" class="list-group-item list-group-item-action list-group-item-dark" target="_blank">
                         <strong>/api/elite-analysis</strong><br>
                         <small>Top 20 world ranking analysis</small>
                     </a>
-                    <a href="/api/stats" class="list-group-item list-group-item-action" target="_blank">
+                    <a href="/api/stats" class="list-group-item list-group-item-action list-group-item-dark" target="_blank">
                         <strong>/api/stats</strong><br>
                         <small>Complete tournament statistics</small>
                     </a>
-                    <a href="/api/course-fit/Good%20Fit" class="list-group-item list-group-item-action" target="_blank">
+                    <a href="/api/course-fit/Good%20Fit" class="list-group-item list-group-item-action list-group-item-dark" target="_blank">
                         <strong>/api/course-fit/{category}</strong><br>
                         <small>Players by course fit category</small>
                     </a>
-                    <a href="/api/health" class="list-group-item list-group-item-action" target="_blank">
+                    <a href="/api/health" class="list-group-item list-group-item-action list-group-item-dark" target="_blank">
                         <strong>/api/health</strong><br>
                         <small>System health and database status</small>
+                    </a>
+                    <a href="{{ url_for('evaluation_page') }}" class="list-group-item list-group-item-action list-group-item-dark">
+                        <strong>Model Evaluation</strong><br>
+                        <small>ROC-AUC, F1 scores, and validation metrics</small>
                     </a>
                 </div>
             </div>

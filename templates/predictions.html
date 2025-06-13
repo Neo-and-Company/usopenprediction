@@ -22,8 +22,8 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-striped table-hover" id="predictionsTable">
-                        <thead class="table-dark">
+                    <table class="table table-dark table-striped table-hover" id="predictionsTable">
+                        <thead>
                             <tr>
                                 <th>Rank</th>
                                 <th>Player</th>
@@ -55,7 +55,9 @@
                                 </td>
                                 <td>{{ "%.3f"|format(predictions[i].course_fit_score) }}</td>
                                 <td>
-                                    {% if predictions[i].fit_category == 'Good Fit' %}
+                                    {% if predictions[i].fit_category == 'Excellent Fit' %}
+                                        <span class="badge bg-primary">{{ predictions[i].fit_category }}</span>
+                                    {% elif predictions[i].fit_category == 'Good Fit' %}
                                         <span class="badge bg-success">{{ predictions[i].fit_category }}</span>
                                     {% elif predictions[i].fit_category == 'Average Fit' %}
                                         <span class="badge bg-warning text-dark">{{ predictions[i].fit_category }}</span>
@@ -120,9 +122,10 @@
             </div>
             <div class="card-body">
                 <ul class="list-unstyled">
+                    {% set excellent_fits = predictions|selectattr("fit_category", "equalto", "Excellent Fit")|list %}
                     {% set good_fits = predictions|selectattr("fit_category", "equalto", "Good Fit")|list %}
                     {% set avg_fits = predictions|selectattr("fit_category", "equalto", "Average Fit")|list %}
-                    {% for player in (good_fits + avg_fits)[:5] %}
+                    {% for player in (excellent_fits + good_fits + avg_fits)[:5] %}
                     <li class="mb-2">
                         <strong>{{ player.player_name }}</strong><br>
                         <small class="text-muted">Fit: {{ "%.3f"|format(player.course_fit_score) }} ({{ player.fit_category }})</small>
@@ -141,13 +144,12 @@
             <div class="card-body">
                 <ul class="list-unstyled">
                     {% for player in predictions %}
-                        {% if player.datagolf_rank and player.datagolf_rank <= 20 %}
+                        {% if loop.index <= 20 and player.datagolf_rank and player.datagolf_rank <= 20 %}
                         <li class="mb-2">
                             <strong>{{ player.player_name }}</strong> (#{{ player.datagolf_rank }})<br>
                             <small class="text-muted">Model Rank: #{{ loop.index }}</small>
                         </li>
                         {% endif %}
-                        {% if loop.index > 20 %}{% break %}{% endif %}
                     {% endfor %}
                 </ul>
             </div>

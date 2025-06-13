@@ -98,7 +98,7 @@ class GolfPredictionQueries:
                 df[col] = df[col].astype(float)
         return df
     
-    def get_top_predictions(self, limit: int = 15) -> pd.DataFrame:
+    def get_top_predictions(self, limit: int = 114) -> pd.DataFrame:
         """Get top predictions for the tournament.
 
         Args:
@@ -294,6 +294,40 @@ class GolfPredictionQueries:
             ORDER BY player_count DESC
         """
         
+        with sqlite3.connect(self.db_path) as conn:
+            return pd.read_sql_query(query, conn)
+
+    def get_model_evaluation_data(self) -> pd.DataFrame:
+        """Get data for model evaluation and validation.
+
+        Returns:
+            DataFrame with prediction data for evaluation
+        """
+        query = """
+            SELECT
+                p.player_name,
+                pr.final_prediction_score,
+                pr.course_fit_score,
+                pr.course_fit_penalty,
+                pr.historical_performance_score,
+                pr.general_form_score,
+                pr.fit_category,
+                pr.confidence_level,
+                ps.sg_total,
+                ps.sg_ott,
+                ps.sg_app,
+                ps.sg_arg,
+                ps.sg_putt,
+                ps.datagolf_rank,
+                ps.dg_skill_estimate,
+                p.country,
+                RANK() OVER (ORDER BY pr.final_prediction_score DESC) as prediction_rank
+            FROM predictions pr
+            JOIN players p ON pr.player_id = p.player_id
+            LEFT JOIN player_skills ps ON p.player_id = ps.player_id
+            ORDER BY pr.final_prediction_score DESC
+        """
+
         with sqlite3.connect(self.db_path) as conn:
             return pd.read_sql_query(query, conn)
 

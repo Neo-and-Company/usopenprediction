@@ -13,13 +13,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function initializeApp() {
     console.log('Golf Prediction System initialized');
-    
+
+    // Debug: Log function availability
+    console.log('Function availability check:', {
+        updateDashboardStats: typeof updateDashboardStats,
+        updatePredictionsTable: typeof updatePredictionsTable,
+        updateValuePicksTable: typeof updateValuePicksTable,
+        updateAnalyticsCharts: typeof updateAnalyticsCharts
+    });
+
     // Add fade-in animation to main content
     const mainContent = document.querySelector('main');
     if (mainContent) {
         mainContent.classList.add('fade-in');
     }
-    
+
     // Initialize tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -120,10 +128,16 @@ async function loadValuePicksData() {
     try {
         const response = await fetch('/api/value-picks');
         const data = await response.json();
-        
+
         if (data.status === 'success') {
             currentData = data;
-            updateValuePicksTable(data.value_picks);
+
+            // Try to update table if function exists, otherwise use server-side rendering
+            if (typeof updateValuePicksTable === 'function') {
+                updateValuePicksTable(data.value_picks);
+            } else {
+                console.log('Value picks data loaded successfully - using server-side rendering');
+            }
         }
     } catch (error) {
         console.error('Error loading value picks:', error);
@@ -137,13 +151,19 @@ async function loadAnalyticsData() {
             fetch('/api/stats'),
             fetch('/api/elite-analysis')
         ]);
-        
+
         const statsData = await statsResponse.json();
         const eliteData = await eliteResponse.json();
-        
+
         if (statsData.status === 'success' && eliteData.status === 'success') {
             currentData = { stats: statsData, elite: eliteData };
-            updateAnalyticsCharts(statsData, eliteData);
+
+            // Try to update charts if function exists, otherwise use server-side rendering
+            if (typeof updateAnalyticsCharts === 'function') {
+                updateAnalyticsCharts(statsData, eliteData);
+            } else {
+                console.log('Analytics data loaded successfully - using server-side rendering');
+            }
         }
     } catch (error) {
         console.error('Error loading analytics data:', error);
@@ -172,14 +192,71 @@ function updateDashboardStats(data) {
 function updatePredictionsTable(predictions) {
     const tableBody = document.querySelector('#predictionsTable tbody');
     if (!tableBody) return;
-    
+
     tableBody.innerHTML = '';
-    
+
     predictions.forEach((player, index) => {
         const row = createPredictionRow(player, index + 1);
         tableBody.appendChild(row);
     });
 }
+
+function updateValuePicksTable(valuePicks) {
+    const tableBody = document.querySelector('.table tbody');
+    if (!tableBody) {
+        console.log('Value picks table not found - using server-side rendering');
+        return;
+    }
+
+    tableBody.innerHTML = '';
+
+    valuePicks.forEach((pick) => {
+        const row = createValuePickRow(pick);
+        tableBody.appendChild(row);
+    });
+}
+
+function createValuePickRow(pick) {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td><strong>${pick.player_name}</strong></td>
+        <td><span class="badge bg-secondary">#${pick.datagolf_rank}</span></td>
+        <td><span class="badge bg-primary">#${pick.prediction_rank}</span></td>
+        <td><span class="badge bg-success fs-6">+${pick.rank_improvement}</span></td>
+        <td>${pick.final_prediction_score.toFixed(3)}</td>
+        <td>${pick.course_fit_score.toFixed(3)}</td>
+        <td>${getFitCategoryBadge(pick.fit_category)}</td>
+        <td>${getValueRatingBadge(pick.rank_improvement)}</td>
+    `;
+
+    return row;
+}
+
+function getValueRatingBadge(improvement) {
+    if (improvement >= 200) {
+        return '<span class="badge bg-success">Excellent</span>';
+    } else if (improvement >= 100) {
+        return '<span class="badge bg-info">Very Good</span>';
+    } else if (improvement >= 50) {
+        return '<span class="badge bg-warning text-dark">Good</span>';
+    } else {
+        return '<span class="badge bg-secondary">Moderate</span>';
+    }
+}
+
+function updateAnalyticsCharts(statsData, eliteData) {
+    console.log('Analytics charts update - using server-side rendering');
+    console.log('Charts are already created by server-side template scripts');
+
+    // Analytics page uses server-side Chart.js creation in the template
+    // No need to create charts dynamically here
+
+    // Just store the data for potential future use
+    currentData = { stats: statsData, elite: eliteData };
+}
+
+// Note: Analytics charts are created by server-side template scripts
+// The chart creation functions below are kept for potential future dynamic use
 
 function createPredictionRow(player, rank) {
     const row = document.createElement('tr');
@@ -299,17 +376,39 @@ function filterPlayers(searchTerm) {
 // Chart utilities
 function createChart(canvasId, config) {
     const canvas = document.getElementById(canvasId);
-    if (!canvas) return null;
-    
-    const ctx = canvas.getContext('2d');
-    
+    if (!canvas) {
+        console.log(`Canvas with ID '${canvasId}' not found`);
+        return null;
+    }
+
     // Destroy existing chart if it exists
     if (charts[canvasId]) {
-        charts[canvasId].destroy();
+        try {
+            charts[canvasId].destroy();
+            delete charts[canvasId];
+        } catch (error) {
+            console.warn(`Error destroying chart ${canvasId}:`, error);
+        }
     }
-    
-    charts[canvasId] = new Chart(ctx, config);
-    return charts[canvasId];
+
+    // Also check for any existing Chart.js instance on this canvas
+    const existingChart = Chart.getChart(canvas);
+    if (existingChart) {
+        try {
+            existingChart.destroy();
+        } catch (error) {
+            console.warn(`Error destroying existing chart on canvas ${canvasId}:`, error);
+        }
+    }
+
+    try {
+        const ctx = canvas.getContext('2d');
+        charts[canvasId] = new Chart(ctx, config);
+        return charts[canvasId];
+    } catch (error) {
+        console.error(`Error creating chart ${canvasId}:`, error);
+        return null;
+    }
 }
 
 // API health check

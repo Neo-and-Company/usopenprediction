@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block title %}Model Evaluation - Golf Prediction System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Model Evaluation & Performance Metrics</h2>
+        <p class="lead">ROC-AUC scores, F1 scores, and comprehensive model validation metrics.</p>
+    </div>
+</div>
+
+<!-- Model Performance Overview -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Binary Classification Performance</h5>
+            </div>
+            <div class="card-body">
+                {% if evaluation_results and 'error' not in evaluation_results %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped">
+                        <thead>
+                            <tr>
+                                <th>Outcome</th>
+                                <th>ROC-AUC</th>
+                                <th>F1 Score</th>
+                                <th>Precision</th>
+                                <th>Recall</th>
+                                <th>Accuracy</th>
+                                <th>Performance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for outcome, metrics in evaluation_results.items() %}
+                            {% if outcome != 'summary' %}
+                            <tr>
+                                <td><strong>{{ outcome.replace('_', ' ').title() }}</strong></td>
+                                <td>
+                                    <span class="badge {% if metrics.roc_auc >= 0.8 %}bg-success{% elif metrics.roc_auc >= 0.7 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ "%.3f"|format(metrics.roc_auc) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge {% if metrics.f1_score >= 0.7 %}bg-success{% elif metrics.f1_score >= 0.5 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ "%.3f"|format(metrics.f1_score) }}
+                                    </span>
+                                </td>
+                                <td>{{ "%.3f"|format(metrics.precision) }}</td>
+                                <td>{{ "%.3f"|format(metrics.recall) }}</td>
+                                <td>{{ "%.3f"|format(metrics.accuracy) }}</td>
+                                <td>
+                                    {% set avg_score = (metrics.roc_auc + metrics.f1_score) / 2 %}
+                                    {% if avg_score >= 0.75 %}
+                                        <span class="badge bg-success">Excellent</span>
+                                    {% elif avg_score >= 0.65 %}
+                                        <span class="badge bg-warning">Good</span>
+                                    {% elif avg_score >= 0.55 %}
+                                        <span class="badge bg-info">Fair</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Needs Improvement</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Performance Interpretation -->
+                <div class="alert alert-dark mt-3">
+                    <h6><strong>Performance Interpretation:</strong></h6>
+                    <ul class="mb-0">
+                        <li><strong>ROC-AUC:</strong> Area Under the Receiver Operating Characteristic curve (0.5 = random, 1.0 = perfect)</li>
+                        <li><strong>F1 Score:</strong> Harmonic mean of precision and recall (balances false positives and false negatives)</li>
+                        <li><strong>Precision:</strong> Of predicted positives, how many were actually positive</li>
+                        <li><strong>Recall:</strong> Of actual positives, how many were correctly predicted</li>
+                    </ul>
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <strong>No evaluation data available.</strong> 
+                    {% if evaluation_results.error %}
+                    Error: {{ evaluation_results.error }}
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confusion Matrix Details -->
+{% if evaluation_results and 'error' not in evaluation_results %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Confusion Matrix Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for outcome, metrics in evaluation_results.items() %}
+                    {% if outcome != 'summary' %}
+                    <div class="col-md-6 mb-3">
+                        <h6>{{ outcome.replace('_', ' ').title() }}</h6>
+                        <div class="table-responsive">
+                            <table class="table table-dark table-sm">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Predicted No</th>
+                                        <th>Predicted Yes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Actual No</strong></td>
+                                        <td class="bg-success">{{ metrics.true_negatives }}</td>
+                                        <td class="bg-danger">{{ metrics.false_positives }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Actual Yes</strong></td>
+                                        <td class="bg-danger">{{ metrics.false_negatives }}</td>
+                                        <td class="bg-success">{{ metrics.true_positives }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Feature Importance Analysis -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Feature Importance Analysis</h5>
+            </div>
+            <div class="card-body">
+                {% if feature_analysis and 'error' not in feature_analysis %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Made Cut</th>
+                                <th>Top 10</th>
+                                <th>Top 20</th>
+                                <th>Avg Correlation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set features = ['final_prediction_score', 'course_fit_score', 'sg_total', 'datagolf_rank'] %}
+                            {% for feature in features %}
+                            <tr>
+                                <td><strong>{{ feature.replace('_', ' ').title() }}</strong></td>
+                                {% set made_cut_corr = feature_analysis.feature_correlations.made_cut.get(feature, 0) %}
+                                {% set top_10_corr = feature_analysis.feature_correlations.top_10.get(feature, 0) %}
+                                {% set top_20_corr = feature_analysis.feature_correlations.top_20.get(feature, 0) %}
+                                <td>
+                                    <span class="badge {% if made_cut_corr|abs >= 0.3 %}bg-success{% elif made_cut_corr|abs >= 0.1 %}bg-warning{% else %}bg-secondary{% endif %}">
+                                        {{ "%.3f"|format(made_cut_corr) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge {% if top_10_corr|abs >= 0.3 %}bg-success{% elif top_10_corr|abs >= 0.1 %}bg-warning{% else %}bg-secondary{% endif %}">
+                                        {{ "%.3f"|format(top_10_corr) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge {% if top_20_corr|abs >= 0.3 %}bg-success{% elif top_20_corr|abs >= 0.1 %}bg-warning{% else %}bg-secondary{% endif %}">
+                                        {{ "%.3f"|format(top_20_corr) }}
+                                    </span>
+                                </td>
+                                {% set avg_corr = (made_cut_corr|abs + top_10_corr|abs + top_20_corr|abs) / 3 %}
+                                <td>
+                                    <span class="badge {% if avg_corr >= 0.3 %}bg-success{% elif avg_corr >= 0.15 %}bg-warning{% else %}bg-secondary{% endif %}">
+                                        {{ "%.3f"|format(avg_corr) }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="alert alert-dark mt-3">
+                    <strong>Correlation Interpretation:</strong> Higher absolute values indicate stronger predictive power. 
+                    Positive correlations mean higher feature values predict better outcomes.
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <strong>Feature analysis not available.</strong>
+                    {% if feature_analysis.error %}
+                    Error: {{ feature_analysis.error }}
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Model Validation Summary</h6>
+            </div>
+            <div class="card-body">
+                {% if evaluation_results and 'summary' in evaluation_results %}
+                <h6>Evaluation Details:</h6>
+                <ul>
+                    <li><strong>Players Evaluated:</strong> {{ evaluation_results.summary.total_players_evaluated }}</li>
+                    <li><strong>Model Version:</strong> {{ evaluation_results.summary.model_version }}</li>
+                    <li><strong>Evaluation Method:</strong> Cross-validation on simulated data</li>
+                    <li><strong>Last Updated:</strong> {{ evaluation_results.summary.evaluation_date[:19] }}</li>
+                </ul>
+                {% endif %}
+                
+                <h6 class="mt-3">API Endpoints:</h6>
+                <div class="list-group list-group-flush">
+                    <a href="/api/model-evaluation" class="list-group-item list-group-item-action list-group-item-dark" target="_blank">
+                        <strong>/api/model-evaluation</strong><br>
+                        <small>Complete evaluation metrics</small>
+                    </a>
+                    <a href="/api/feature-importance" class="list-group-item list-group-item-action list-group-item-dark" target="_blank">
+                        <strong>/api/feature-importance</strong><br>
+                        <small>Feature correlation analysis</small>
+                    </a>
+                    <a href="/api/model-calibration" class="list-group-item list-group-item-action list-group-item-dark" target="_blank">
+                        <strong>/api/model-calibration</strong><br>
+                        <small>Probability calibration metrics</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Model Insights -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Model Performance Insights</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Strengths:</h6>
+                        <ul>
+                            <li>Course fit analysis provides meaningful differentiation</li>
+                            <li>Historical performance integration improves accuracy</li>
+                            <li>Multi-component scoring balances various factors</li>
+                            <li>Confidence intervals help assess prediction reliability</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Areas for Improvement:</h6>
+                        <ul>
+                            <li>Collect actual tournament results for validation</li>
+                            <li>Implement time-series cross-validation</li>
+                            <li>Add weather and course condition adjustments</li>
+                            <li>Incorporate player form trends and momentum</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="alert alert-dark mt-3">
+                    <strong>Note:</strong> Current evaluation uses simulated results for demonstration. 
+                    For production use, implement validation against actual historical tournament outcomes.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-refresh evaluation data every 5 minutes
+setInterval(function() {
+    // Could implement auto-refresh of evaluation metrics here
+    console.log('Evaluation metrics could be refreshed here');
+}, 300000);
+</script>
+{% endblock %}

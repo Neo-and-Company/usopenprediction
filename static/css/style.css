@@ -13,7 +13,39 @@
 /* Global Styles */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f8f9fa;
+    background-color: #212529;
+    color: #ffffff;
+}
+
+/* Page Headers - Ensure visibility */
+h1, h2, h3, h4, h5, h6 {
+    color: #ffffff !important;
+    font-weight: 600;
+}
+
+.lead {
+    color: #ffffff !important;
+    font-weight: 400;
+}
+
+/* Main content area */
+main.container {
+    background-color: #343a40;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 2rem;
+    min-height: 70vh;
+    color: #ffffff;
+}
+
+/* Ensure all text in main content is visible */
+main.container * {
+    color: #ffffff !important;
+}
+
+main.container .text-muted {
+    color: #ffffff !important;
 }
 
 /* Navigation */
@@ -27,12 +59,21 @@ body {
     border: none;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     margin-bottom: 1.5rem;
+    background-color: #343a40;
+    color: #ffffff;
 }
 
 .card-header {
-    background-color: #fff;
-    border-bottom: 1px solid #dee2e6;
+    background-color: #495057;
+    border-bottom: 1px solid #6c757d;
     font-weight: 600;
+    color: #ffffff !important;
+}
+
+.card-header h5, .card-header h6 {
+    color: #ffffff !important;
+    font-weight: 600;
+    margin-bottom: 0;
 }
 
 /* Jumbotron */
@@ -44,6 +85,7 @@ body {
 /* Tables */
 .table {
     margin-bottom: 0;
+    color: #ffffff;
 }
 
 .table th {
@@ -52,10 +94,130 @@ body {
     font-size: 0.875rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    color: #ffffff;
+}
+
+.table td {
+    color: #ffffff;
 }
 
 .table-hover tbody tr:hover {
-    background-color: rgba(0, 123, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Dark table styling for better visibility */
+.table-dark {
+    background-color: #343a40;
+}
+
+.table-dark th,
+.table-dark td {
+    color: #ffffff !important;
+    border-color: #495057;
+    font-weight: 500;
+}
+
+.table-dark thead th {
+    background-color: #212529;
+    color: #ffffff !important;
+    border-color: #495057;
+}
+
+/* Ensure all text in dark tables is visible */
+.table-dark .text-muted {
+    color: #adb5bd !important;
+}
+
+.table-dark .text-primary {
+    color: #66b3ff !important;
+}
+
+.table-dark .text-success {
+    color: #5cb85c !important;
+}
+
+.table-dark .text-warning {
+    color: #f0ad4e !important;
+}
+
+.table-dark .text-danger {
+    color: #d9534f !important;
+}
+
+.table-dark .text-info {
+    color: #5bc0de !important;
+}
+
+/* Badge visibility in dark tables */
+.table-dark .badge {
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.table-dark .badge.bg-primary {
+    background-color: #0d6efd !important;
+    color: #ffffff !important;
+}
+
+.table-dark .badge.bg-success {
+    background-color: #198754 !important;
+    color: #ffffff !important;
+}
+
+.table-dark .badge.bg-warning {
+    background-color: #ffc107 !important;
+    color: #000000 !important;
+}
+
+.table-dark .badge.bg-danger {
+    background-color: #dc3545 !important;
+    color: #ffffff !important;
+}
+
+.table-dark .badge.bg-secondary {
+    background-color: #6c757d !important;
+    color: #ffffff !important;
+}
+
+.table-dark .badge.bg-dark {
+    background-color: #212529 !important;
+    color: #ffffff !important;
+}
+
+/* Ensure strong text is visible in dark tables */
+.table-dark strong {
+    color: #ffffff !important;
+    font-weight: 700;
+}
+
+/* Improve number visibility */
+.table-dark .fs-6 {
+    font-size: 1rem !important;
+    font-weight: 600;
+}
+
+/* Striped table rows for better readability */
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.table-dark.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Make all tables have dark background */
+.table {
+    background-color: #343a40;
+}
+
+.table tbody tr {
+    background-color: #343a40;
+}
+
+/* Hover effects for dark tables */
+.table-dark.table-hover tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
 }
 
 /* Badges */
@@ -80,6 +242,7 @@ body {
 .card .card-body h2 {
     font-weight: 700;
     margin-bottom: 0;
+    color: #ffffff !important;
 }
 
 .card .card-body h5 {
@@ -87,7 +250,7 @@ body {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #6c757d;
+    color: #ffffff !important;
 }
 
 /* Prediction Score Styling */
@@ -250,20 +413,105 @@ footer {
     }
 }
 
+/* Force all text to be white */
+* {
+    color: #ffffff !important;
+}
+
+/* Override specific Bootstrap text colors */
+.text-primary {
+    color: #66b3ff !important;
+}
+
+.text-success {
+    color: #5cb85c !important;
+}
+
+.text-warning {
+    color: #f0ad4e !important;
+}
+
+.text-danger {
+    color: #d9534f !important;
+}
+
+.text-info {
+    color: #5bc0de !important;
+}
+
+.text-secondary {
+    color: #adb5bd !important;
+}
+
+.text-dark {
+    color: #ffffff !important;
+}
+
+.text-light {
+    color: #ffffff !important;
+}
+
+/* Ensure table text is white */
+.table, .table th, .table td, .table tbody, .table thead {
+    color: #ffffff !important;
+}
+
+/* Ensure card text is white */
+.card, .card-body, .card-header, .card-footer {
+    color: #ffffff !important;
+}
+
+/* Ensure all headings are white */
+h1, h2, h3, h4, h5, h6 {
+    color: #ffffff !important;
+}
+
+/* Ensure paragraphs and spans are white */
+p, span, div, li, ul, ol {
+    color: #ffffff !important;
+}
+
+/* Ensure strong and bold text is white */
+strong, b {
+    color: #ffffff !important;
+}
+
+/* List group items */
+.list-group-item {
+    background-color: #495057 !important;
+    color: #ffffff !important;
+    border-color: #6c757d !important;
+}
+
+.list-group-item-dark {
+    background-color: #495057 !important;
+    color: #ffffff !important;
+}
+
+.list-group-item-action:hover {
+    background-color: #6c757d !important;
+    color: #ffffff !important;
+}
+
+/* Ensure small text is visible */
+small {
+    color: #adb5bd !important;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
     width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: #343a40;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
+    background: #6c757d;
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
+    background: #adb5bd;
 }

@@ -276,20 +276,53 @@ class ScorecardPredictor:
             'back_nine_par': sum(hole.par for hole in self.course.holes[9:])
         }
     
-    def predict_tournament_scorecard(self, player_data: Dict, 
+    def predict_tournament_scorecard(self, player_data: Dict,
                                    weather_scenarios: List[str] = None) -> Dict:
         """Predict complete 4-round tournament scorecard."""
-        
+
         if weather_scenarios is None:
             weather_scenarios = ['ideal', 'ideal', 'windy', 'challenging']
-        
+
         rounds = []
         cumulative_score = 0
-        
+
+        # Calculate player's expected scoring average for consistency
+        player_rank = player_data.get('datagolf_rank', 100)
+        player_tier = self.classify_player_tier(player_rank)
+
+        # Expected round score based on player tier (for consistency)
+        expected_scores = {
+            'elite': 1,      # +1 to par average
+            'very_good': 2,  # +2 to par average
+            'good': 3,       # +3 to par average
+            'average': 4,    # +4 to par average
+            'below_average': 6  # +6 to par average
+        }
+        expected_round_score = expected_scores.get(player_tier, 4)
+
         for round_num in range(1, 5):
             weather = weather_scenarios[round_num - 1] if round_num - 1 < len(weather_scenarios) else 'ideal'
-            
+
             round_result = self.predict_round_scorecard(player_data, round_num, weather)
+
+            # Apply consistency factor to reduce extreme volatility
+            if len(rounds) > 0:
+                # Calculate deviation from expected performance
+                previous_avg = sum(r['relative_to_par'] for r in rounds) / len(rounds)
+                current_score = round_result['relative_to_par']
+
+                # If current round deviates too much from pattern, moderate it
+                max_deviation = 4  # Maximum swing from previous average
+                if abs(current_score - previous_avg) > max_deviation:
+                    # Pull the score back toward the expected range
+                    if current_score > previous_avg + max_deviation:
+                        round_result['relative_to_par'] = int(previous_avg + max_deviation)
+                    elif current_score < previous_avg - max_deviation:
+                        round_result['relative_to_par'] = int(previous_avg - max_deviation)
+
+                    # Recalculate total score
+                    round_result['total_score'] = self.course.par + round_result['relative_to_par']
+
             rounds.append(round_result)
             cumulative_score += round_result['relative_to_par']
         

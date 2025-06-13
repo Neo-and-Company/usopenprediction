@@ -295,13 +295,13 @@ class CourseEngineeringSystem:
     
     def _categorize_fit(self, overall_fit: float) -> str:
         """Categorize overall course fit."""
-        if overall_fit >= 1.3:
+        if overall_fit >= 0.85:
             return "Excellent Fit"
-        elif overall_fit >= 1.1:
+        elif overall_fit >= 0.75:
             return "Good Fit"
-        elif overall_fit >= 0.9:
+        elif overall_fit >= 0.65:
             return "Average Fit"
-        elif overall_fit >= 0.7:
+        elif overall_fit >= 0.55:
             return "Poor Fit"
         else:
             return "Very Poor Fit"

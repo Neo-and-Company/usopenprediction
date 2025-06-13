@@ -1,21 +1,13 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "vercel_app.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "50mb"
-      }
+  "functions": {
+    "vercel_app.py": {
+      "runtime": "python3.9"
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "vercel_app.py"
+      "source": "/(.*)",
+      "destination": "/vercel_app.py"
     }
-  ],
-  "env": {
-    "FLASK_ENV": "production"
-  }
+  ]
 }

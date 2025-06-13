@@ -6,8 +6,6 @@ Complete Flask application with all features from local version
 import os
 import sys
 import sqlite3
-import pandas as pd
-import numpy as np
 from flask import Flask, jsonify, render_template_string, request
 from datetime import datetime
 import requests

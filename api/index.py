@@ -318,9 +318,8 @@ def api_predictions():
         'timestamp': datetime.now().isoformat()
     })
 
-# Vercel handler
-def handler(request):
-    return app(request.environ, lambda status, headers: None)
+# Vercel handler - this is the entry point for Vercel
+app = app
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)

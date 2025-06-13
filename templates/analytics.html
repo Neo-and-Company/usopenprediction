@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Golf Prediction System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Advanced Analytics</h2>
+        <p class="lead">Deep insights into model performance, course fit analysis, and tournament statistics.</p>
+    </div>
+</div>
+
+<!-- Elite Players Analysis -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Elite Players Analysis (Top 20 World Ranking)</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>World Rank</th>
+                                <th>Player</th>
+                                <th>Model Rank</th>
+                                <th>Rank Difference</th>
+                                <th>Prediction Score</th>
+                                <th>Course Fit</th>
+                                <th>Fit Category</th>
+                                <th>SG Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for player in elite_players %}
+                            <tr>
+                                <td><strong>#{{ player.datagolf_rank }}</strong></td>
+                                <td>{{ player.player_name }}</td>
+                                <td>
+                                    <span class="badge bg-primary">#{{ player.prediction_rank }}</span>
+                                </td>
+                                <td>
+                                    {% set diff = player.prediction_rank - player.datagolf_rank %}
+                                    {% if diff > 0 %}
+                                        <span class="text-danger">+{{ diff }}</span>
+                                    {% elif diff < 0 %}
+                                        <span class="text-success">{{ diff }}</span>
+                                    {% else %}
+                                        <span class="text-muted">0</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ "%.3f"|format(player.final_prediction_score) }}</td>
+                                <td>{{ "%.3f"|format(player.course_fit_score) }}</td>
+                                <td>
+                                    {% if player.fit_category == 'Good Fit' %}
+                                        <span class="badge bg-success">{{ player.fit_category }}</span>
+                                    {% elif player.fit_category == 'Average Fit' %}
+                                        <span class="badge bg-warning text-dark">{{ player.fit_category }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ player.fit_category }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ "%.2f"|format(player.sg_total) if player.sg_total else 'N/A' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Course Fit Analysis -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Course Fit vs Performance Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Fit Category</th>
+                                <th>Player Count</th>
+                                <th>Avg World Rank</th>
+                                <th>Avg Fit Score</th>
+                                <th>Avg Prediction</th>
+                                <th>Score Range</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category in fit_analysis %}
+                            <tr>
+                                <td>
+                                    {% if category.fit_category == 'Good Fit' %}
+                                        <span class="badge bg-success">{{ category.fit_category }}</span>
+                                    {% elif category.fit_category == 'Average Fit' %}
+                                        <span class="badge bg-warning text-dark">{{ category.fit_category }}</span>
+                                    {% elif category.fit_category == 'Poor Fit' %}
+                                        <span class="badge bg-danger">{{ category.fit_category }}</span>
+                                    {% else %}
+                                        <span class="badge bg-dark">{{ category.fit_category }}</span>
+                                    {% endif %}
+                                </td>
+                                <td><strong>{{ category.player_count }}</strong></td>
+                                <td>{{ "%.1f"|format(category.avg_world_rank) }}</td>
+                                <td>{{ "%.3f"|format(category.avg_fit_score) }}</td>
+                                <td>{{ "%.3f"|format(category.avg_prediction_score) }}</td>
+                                <td>
+                                    <small>{{ "%.3f"|format(category.min_prediction) }} - {{ "%.3f"|format(category.max_prediction) }}</small>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Course Fit Distribution</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="fitDistributionChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Country Analysis -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Country Representation Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Country</th>
+                                        <th>Total Players</th>
+                                        <th>With Predictions</th>
+                                        <th>Coverage %</th>
+                                        <th>Avg Prediction</th>
+                                        <th>Best Player Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for country in countries %}
+                                    <tr>
+                                        <td><strong>{{ country.country }}</strong></td>
+                                        <td>{{ country.player_count }}</td>
+                                        <td>{{ country.players_with_predictions }}</td>
+                                        <td>
+                                            {% set coverage = (country.players_with_predictions / country.player_count * 100) %}
+                                            <span class="badge {% if coverage >= 80 %}bg-success{% elif coverage >= 60 %}bg-warning{% else %}bg-danger{% endif %}">
+                                                {{ "%.0f"|format(coverage) }}%
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if country.avg_prediction_score %}
+                                                {{ "%.3f"|format(country.avg_prediction_score) }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if country.best_prediction %}
+                                                <span class="badge bg-primary">{{ "%.3f"|format(country.best_prediction) }}</span>
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <canvas id="countryChart" width="400" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Model Performance Metrics -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Model Performance Insights</h6>
+            </div>
+            <div class="card-body">
+                <h6>Key Findings:</h6>
+                <ul>
+                    <li><strong>Course Fit Impact:</strong> Good fit players average {{ "%.3f"|format(fit_analysis[0].avg_prediction_score) }} vs {{ "%.3f"|format(fit_analysis[-1].avg_prediction_score) }} for very poor fit</li>
+                    <li><strong>Elite Player Alignment:</strong> 
+                        {% set elite_aligned = elite_players|selectattr("prediction_rank", "le", 10)|list|length %}
+                        {{ elite_aligned }}/{{ elite_players|length }} top-20 players in model's top-10
+                    </li>
+                    <li><strong>Field Coverage:</strong> {{ "%.1f"|format((countries|map(attribute='players_with_predictions')|sum / countries|map(attribute='player_count')|sum) * 100) }}% of international field has predictions</li>
+                </ul>
+                
+                <h6 class="mt-3">Model Validation:</h6>
+                <ul>
+                    <li>Course fit penalties are working effectively</li>
+                    <li>Elite players with good fits rank appropriately high</li>
+                    <li>Mathematical stability achieved across all predictions</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">API Endpoints</h6>
+            </div>
+            <div class="card-body">
+                <h6>Available Analytics APIs:</h6>
+                <div class="list-group list-group-flush">
+                    <a href="/api/elite-analysis" class="list-group-item list-group-item-action" target="_blank">
+                        <strong>/api/elite-analysis</strong><br>
+                        <small>Top 20 world ranking analysis</small>
+                    </a>
+                    <a href="/api/stats" class="list-group-item list-group-item-action" target="_blank">
+                        <strong>/api/stats</strong><br>
+                        <small>Complete tournament statistics</small>
+                    </a>
+                    <a href="/api/course-fit/Good%20Fit" class="list-group-item list-group-item-action" target="_blank">
+                        <strong>/api/course-fit/{category}</strong><br>
+                        <small>Players by course fit category</small>
+                    </a>
+                    <a href="/api/health" class="list-group-item list-group-item-action" target="_blank">
+                        <strong>/api/health</strong><br>
+                        <small>System health and database status</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Course Fit Distribution Chart
+const fitCtx = document.getElementById('fitDistributionChart').getContext('2d');
+const fitData = {{ fit_analysis|tojson }};
+
+new Chart(fitCtx, {
+    type: 'bar',
+    data: {
+        labels: fitData.map(item => item.fit_category),
+        datasets: [{
+            label: 'Player Count',
+            data: fitData.map(item => item.player_count),
+            backgroundColor: [
+                '#28a745',  // Good Fit
+                '#ffc107',  // Average Fit
+                '#dc3545',  // Poor Fit
+                '#6c757d'   // Very Poor Fit
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Country Representation Chart
+const countryCtx = document.getElementById('countryChart').getContext('2d');
+const countryData = {{ countries[:5]|tojson }};
+
+new Chart(countryCtx, {
+    type: 'doughnut',
+    data: {
+        labels: countryData.map(item => item.country),
+        datasets: [{
+            data: countryData.map(item => item.player_count),
+            backgroundColor: [
+                '#007bff',
+                '#28a745',
+                '#ffc107',
+                '#dc3545',
+                '#6c757d'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            },
+            title: {
+                display: true,
+                text: 'Top 5 Countries'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

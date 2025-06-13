@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Value Picks - Golf Prediction System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Value Picks</h2>
+        <p class="lead">Players ranked significantly higher by our model than their world ranking suggests.</p>
+        <div class="alert alert-info">
+            <strong>Value Pick Definition:</strong> Players where our model prediction rank is at least 10 positions higher than their world ranking.
+            These players may be undervalued by the market and represent potential betting or fantasy value.
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Top Value Picks</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Player</th>
+                                <th>World Rank</th>
+                                <th>Model Rank</th>
+                                <th>Rank Improvement</th>
+                                <th>Prediction Score</th>
+                                <th>Course Fit</th>
+                                <th>Fit Category</th>
+                                <th>Value Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pick in value_picks %}
+                            <tr>
+                                <td><strong>{{ pick.player_name }}</strong></td>
+                                <td>
+                                    <span class="badge bg-secondary">#{{ pick.datagolf_rank }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">#{{ pick.prediction_rank }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success fs-6">+{{ pick.rank_improvement }}</span>
+                                </td>
+                                <td>{{ "%.3f"|format(pick.final_prediction_score) }}</td>
+                                <td>{{ "%.3f"|format(pick.course_fit_score) }}</td>
+                                <td>
+                                    {% if pick.fit_category == 'Good Fit' %}
+                                        <span class="badge bg-success">{{ pick.fit_category }}</span>
+                                    {% elif pick.fit_category == 'Average Fit' %}
+                                        <span class="badge bg-warning text-dark">{{ pick.fit_category }}</span>
+                                    {% elif pick.fit_category == 'Poor Fit' %}
+                                        <span class="badge bg-danger">{{ pick.fit_category }}</span>
+                                    {% else %}
+                                        <span class="badge bg-dark">{{ pick.fit_category }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% set improvement = pick.rank_improvement %}
+                                    {% if improvement >= 200 %}
+                                        <span class="badge bg-success">Excellent</span>
+                                    {% elif improvement >= 100 %}
+                                        <span class="badge bg-info">Very Good</span>
+                                    {% elif improvement >= 50 %}
+                                        <span class="badge bg-warning text-dark">Good</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Moderate</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if not value_picks %}
+                <div class="text-center py-4">
+                    <p class="text-muted">No significant value picks found with current criteria.</p>
+                    <p><small>Try adjusting the minimum rank improvement threshold.</small></p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Value Pick Analysis -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Value Pick Insights</h6>
+            </div>
+            <div class="card-body">
+                {% if value_picks %}
+                <ul class="list-unstyled">
+                    <li><strong>Total Value Picks:</strong> {{ value_picks|length }}</li>
+                    <li><strong>Best Value:</strong> {{ value_picks[0].player_name }} (+{{ value_picks[0].rank_improvement }} positions)</li>
+                    <li><strong>Average Improvement:</strong> +{{ "%.0f"|format(value_picks|map(attribute='rank_improvement')|sum / value_picks|length) }} positions</li>
+                    <li><strong>Course Fit Distribution:</strong>
+                        <ul class="mt-2">
+                            {% set fit_counts = {} %}
+                            {% for pick in value_picks %}
+                                {% set _ = fit_counts.update({pick.fit_category: fit_counts.get(pick.fit_category, 0) + 1}) %}
+                            {% endfor %}
+                            {% for category, count in fit_counts.items() %}
+                            <li>{{ category }}: {{ count }} players</li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                </ul>
+                {% else %}
+                <p class="text-muted">No value picks available for analysis.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">How to Use Value Picks</h6>
+            </div>
+            <div class="card-body">
+                <h6>Fantasy Golf:</h6>
+                <ul>
+                    <li>Target players with high rank improvements for DraftKings/FanDuel</li>
+                    <li>Look for lower-priced options with good model scores</li>
+                    <li>Consider course fit when building lineups</li>
+                </ul>
+                
+                <h6 class="mt-3">Betting Strategy:</h6>
+                <ul>
+                    <li>Compare model rankings to betting odds</li>
+                    <li>Look for value in outright winner markets</li>
+                    <li>Consider top-20 finish bets for high-improvement players</li>
+                </ul>
+                
+                <h6 class="mt-3">Risk Assessment:</h6>
+                <ul>
+                    <li><span class="badge bg-success">Excellent</span>: High confidence picks</li>
+                    <li><span class="badge bg-info">Very Good</span>: Strong value potential</li>
+                    <li><span class="badge bg-warning text-dark">Good</span>: Moderate value</li>
+                    <li><span class="badge bg-secondary">Moderate</span>: Lower confidence</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API Access -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">API Access</h6>
+            </div>
+            <div class="card-body">
+                <p>Access value picks programmatically:</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Endpoints:</h6>
+                        <ul>
+                            <li><code>GET /api/value-picks</code> - All value picks</li>
+                            <li><code>GET /api/value-picks?min_improvement=20</code> - Custom threshold</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Quick Access:</h6>
+                        <a href="/api/value-picks" class="btn btn-sm btn-outline-primary" target="_blank">JSON Data</a>
+                        <a href="/api/value-picks?min_improvement=20" class="btn btn-sm btn-outline-info" target="_blank">High Value Only</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Add interactive features for value picks
+document.addEventListener('DOMContentLoaded', function() {
+    // Highlight excellent value picks
+    const rows = document.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        const improvementCell = row.cells[3];
+        const improvement = parseInt(improvementCell.textContent.replace('+', ''));
+        
+        if (improvement >= 200) {
+            row.classList.add('table-success');
+        } else if (improvement >= 100) {
+            row.classList.add('table-info');
+        }
+    });
+});
+</script>
+{% endblock %}

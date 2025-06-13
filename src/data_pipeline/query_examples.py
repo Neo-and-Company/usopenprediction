@@ -5,6 +5,7 @@ Demonstrates SQL queries for the golf prediction database with improved architec
 
 import sqlite3
 import pandas as pd
+import numpy as np
 from typing import List, Dict, Optional, Any
 import logging
 
@@ -78,6 +79,24 @@ class GolfPredictionQueries:
             db_path: Path to SQLite database
         """
         self.db_path = db_path
+
+    def _convert_numpy_types(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Convert numpy types to Python native types for JSON serialization.
+
+        Args:
+            df: DataFrame with potential numpy types
+
+        Returns:
+            DataFrame with Python native types
+        """
+        for col in df.columns:
+            if df[col].dtype == 'int64':
+                df[col] = df[col].astype(int)
+            elif df[col].dtype == 'float64':
+                df[col] = df[col].astype(float)
+            elif pd.api.types.is_numeric_dtype(df[col]):
+                df[col] = df[col].astype(float)
+        return df
     
     def get_top_predictions(self, limit: int = 15) -> pd.DataFrame:
         """Get top predictions for the tournament.
@@ -107,7 +126,10 @@ class GolfPredictionQueries:
         """
 
         with GolfDB(self.db_path) as db:
-            return db._execute_query(query, (limit,))
+            df = db._execute_query(query, (limit,))
+            if df is not None:
+                return self._convert_numpy_types(df)
+            return df
     
     def get_players_by_course_fit(self, fit_category: str) -> pd.DataFrame:
         """Get players by course fit category.

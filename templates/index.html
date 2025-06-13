@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Golf Prediction System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="jumbotron bg-primary text-white p-5 rounded mb-4">
+            <h1 class="display-4">U.S. Open 2025 Predictions</h1>
+            <p class="lead">Advanced golf analytics for Oakmont Country Club using course engineering and machine learning.</p>
+            <hr class="my-4">
+            <p>Our model analyzes course fit, historical performance, and current form to predict tournament outcomes.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Tournament Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Total Players</h5>
+                <h2 class="text-primary">{{ summary.total_players }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">With Predictions</h5>
+                <h2 class="text-success">{{ summary.with_predictions }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Professionals</h5>
+                <h2 class="text-info">{{ summary.professionals }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Countries</h5>
+                <h2 class="text-warning">{{ summary.countries }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Predictions -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Top 10 Predictions</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>Score</th>
+                                <th>Course Fit</th>
+                                <th>Category</th>
+                                <th>World Rank</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for i in range(top_predictions|length) %}
+                            <tr>
+                                <td><strong>{{ i + 1 }}</strong></td>
+                                <td>{{ top_predictions[i].player_name }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ "%.3f"|format(top_predictions[i].final_prediction_score) }}</span>
+                                </td>
+                                <td>{{ "%.3f"|format(top_predictions[i].course_fit_score) }}</td>
+                                <td>
+                                    {% if top_predictions[i].fit_category == 'Good Fit' %}
+                                        <span class="badge bg-success">{{ top_predictions[i].fit_category }}</span>
+                                    {% elif top_predictions[i].fit_category == 'Average Fit' %}
+                                        <span class="badge bg-warning">{{ top_predictions[i].fit_category }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ top_predictions[i].fit_category }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>#{{ top_predictions[i].datagolf_rank }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('predictions_page') }}" class="btn btn-primary">View All Predictions</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Course Fit Analysis</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="courseFitChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('value_picks_page') }}" class="btn btn-success">
+                        View Value Picks
+                    </a>
+                    <a href="{{ url_for('analytics_page') }}" class="btn btn-info">
+                        Advanced Analytics
+                    </a>
+                    <a href="/api/predictions" class="btn btn-outline-primary" target="_blank">
+                        API Access
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Model Information -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Model Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Prediction Components:</h6>
+                        <ul>
+                            <li><strong>Course Fit (40%):</strong> Player skills vs course conditions</li>
+                            <li><strong>Historical Performance (30%):</strong> Past performance at venue</li>
+                            <li><strong>General Form (20%):</strong> Recent Strokes Gained metrics</li>
+                            <li><strong>Scorecard Prediction (10%):</strong> Expected scoring</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Course Conditions (Oakmont):</h6>
+                        <ul>
+                            <li><strong>Green Speed:</strong> 14.5 (Very Fast)</li>
+                            <li><strong>Rough Height:</strong> 4.5 inches (Severe)</li>
+                            <li><strong>Bunker Penalty:</strong> 0.8 strokes (Difficult)</li>
+                            <li><strong>Course Length:</strong> 7,230 yards (Long)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Course Fit Chart
+const ctx = document.getElementById('courseFitChart').getContext('2d');
+const courseFitData = {{ fit_analysis|tojson }};
+
+const chart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: courseFitData.map(item => item.fit_category),
+        datasets: [{
+            data: courseFitData.map(item => item.player_count),
+            backgroundColor: [
+                '#28a745',  // Good Fit - Green
+                '#ffc107',  // Average Fit - Yellow
+                '#dc3545',  // Poor Fit - Red
+                '#6c757d'   // Very Poor Fit - Gray
+            ],
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            },
+            title: {
+                display: true,
+                text: 'Players by Course Fit'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

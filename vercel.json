@@ -1,1 +1,27 @@
-{"version": 2, "functions": {"api/index.py": {"runtime": "python3.9"}}}
+{
+  "version": 2,
+  "name": "golf-prediction-app",
+  "builds": [
+    {
+      "src": "vercel_app.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "vercel_app.py"
+    }
+  ],
+  "env": {
+    "FLASK_ENV": "production"
+  },
+  "functions": {
+    "vercel_app.py": {
+      "maxDuration": 30
+    }
+  }
+}

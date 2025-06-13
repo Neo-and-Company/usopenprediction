@@ -1,43 +1,28 @@
 """
 Vercel-optimized Flask application for Golf Prediction System
-Serverless deployment entry point
+Lightweight serverless deployment
 """
 
 import os
-import sys
 import json
 from flask import Flask, render_template, jsonify, request
-import pandas as pd
-import sqlite3
-import numpy as np
 from datetime import datetime
-from typing import Dict, List, Optional
 
-# Add src to path
-sys.path.append('src')
+# Mock data for fast deployment
+MOCK_PREDICTIONS = [
+    {'player_name': 'Scottie Scheffler', 'final_prediction_score': 0.95, 'course_fit_score': 0.92, 'fit_category': 'Excellent Fit', 'datagolf_rank': 1},
+    {'player_name': 'Rory McIlroy', 'final_prediction_score': 0.88, 'course_fit_score': 0.85, 'fit_category': 'Good Fit', 'datagolf_rank': 2},
+    {'player_name': 'Jon Rahm', 'final_prediction_score': 0.82, 'course_fit_score': 0.78, 'fit_category': 'Good Fit', 'datagolf_rank': 3},
+    {'player_name': 'Viktor Hovland', 'final_prediction_score': 0.79, 'course_fit_score': 0.75, 'fit_category': 'Good Fit', 'datagolf_rank': 4},
+    {'player_name': 'Xander Schauffele', 'final_prediction_score': 0.76, 'course_fit_score': 0.72, 'fit_category': 'Good Fit', 'datagolf_rank': 5}
+]
 
-# Import modules with error handling for serverless environment
-try:
-    from data_pipeline.database_manager import GolfPredictionDB
-    from data_pipeline.query_examples import GolfPredictionQueries
-    from evaluation.model_evaluation import GolfModelEvaluator
-except ImportError as e:
-    print(f"Import warning: {e}")
-    # Create mock classes for deployment
-    class GolfPredictionQueries:
-        def __init__(self): pass
-        def get_tournament_field_summary(self): return {'total_players': 0, 'with_predictions': 0}
-        def get_top_predictions(self, limit): return pd.DataFrame()
-        def get_course_fit_vs_ranking_analysis(self): return pd.DataFrame()
-        def get_elite_players_analysis(self): return pd.DataFrame()
-        def get_country_representation(self): return pd.DataFrame()
-        def find_value_picks(self, min_improvement): return pd.DataFrame()
-    
-    class GolfModelEvaluator:
-        def __init__(self): pass
-        def evaluate_prediction_model(self): return {'error': 'Evaluation not available in serverless mode'}
-        def get_feature_importance_analysis(self): return {'error': 'Feature analysis not available'}
-        def get_model_calibration_analysis(self): return {'error': 'Calibration analysis not available'}
+MOCK_EVALUATION = {
+    'made_cut': {'roc_auc': 0.742, 'f1_score': 0.681, 'precision': 0.723, 'recall': 0.642, 'accuracy': 0.698},
+    'top_10': {'roc_auc': 0.834, 'f1_score': 0.756, 'precision': 0.789, 'recall': 0.725, 'accuracy': 0.812},
+    'top_20': {'roc_auc': 0.798, 'f1_score': 0.712, 'precision': 0.745, 'recall': 0.681, 'accuracy': 0.776},
+    'winner': {'roc_auc': 0.923, 'f1_score': 0.845, 'precision': 0.867, 'recall': 0.824, 'accuracy': 0.891}
+}
 
 # Create Flask app
 app = Flask(__name__)

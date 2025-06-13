@@ -1,15 +1,1 @@
-requests>=2.31.0
-pandas>=2.0.0
-numpy>=1.24.0
-scikit-learn>=1.3.0
-matplotlib>=3.8.0
-seaborn>=0.13.0
-jupyter>=1.0.0
-python-dotenv>=1.0.0
-xgboost>=2.0.0
-# lightgbm>=4.1.0  # Commented out due to CMake compatibility issues
-plotly>=5.17.0
-tqdm>=4.66.0
-flask>=2.3.0
-gunicorn>=21.2.0
-waitress>=2.1.0
+flask==2.3.3

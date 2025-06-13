@@ -294,17 +294,22 @@ class CourseEngineeringSystem:
         return max(0.1, min(2.0, fit_score))  # Clamp between 0.1 and 2.0
     
     def _categorize_fit(self, overall_fit: float) -> str:
-        """Categorize overall course fit."""
-        if overall_fit >= 0.85:
+        """Categorize overall course fit based on data-driven thresholds.
+
+        Thresholds adjusted for Oakmont's demanding conditions:
+        - Top 5%: Excellent Fit (>= 0.64)
+        - Top 25%: Good Fit (>= 0.57)
+        - Middle 50%: Average Fit (0.49 - 0.57)
+        - Bottom 25%: Poor Fit (< 0.49)
+        """
+        if overall_fit >= 0.64:  # Top 5% (95th percentile: 0.639)
             return "Excellent Fit"
-        elif overall_fit >= 0.75:
+        elif overall_fit >= 0.57:  # Top 25% (75th percentile: 0.574)
             return "Good Fit"
-        elif overall_fit >= 0.65:
+        elif overall_fit >= 0.49:  # Middle 50% (25th percentile: 0.487)
             return "Average Fit"
-        elif overall_fit >= 0.55:
+        else:  # Bottom 25%
             return "Poor Fit"
-        else:
-            return "Very Poor Fit"
     
     def _identify_advantages(self, fit_scores: Dict) -> List[str]:
         """Identify player's key advantages for this course."""
